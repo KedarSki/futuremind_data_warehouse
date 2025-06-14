@@ -1,28 +1,42 @@
-.PHONY: install run test lint fmt check-all clean activate
+#* Variables
+SHELL := /usr/bin/env bash
+PYTHON := python
+PYTHONPATH := $(shell pwd)
 
-# Poetry-based Makefile — all commands go through poetry
+#* Poetry
+.PHONY: poetry-download
+poetry-download:
+	curl -sSL https://install.python-poetry.org | $(PYTHON) -
 
-install:
-	poetry install
+.PHONY: poetry-remove
+poetry-remove:
+	curl -sSL https://install.python-poetry.org | $(PYTHON) - --uninstall
 
-run:
-	poetry run python src/main.py
+.PHONY: poetry-install-deps
+poetry-install-deps:
+	poetry install --with dev
 
-test:
-	poetry run pytest tests/
-
-lint:
-	poetry run flake8 src/
-
-fmt:
-	poetry run black src/ tests/
-
-check-all: fmt lint
-
-clean:
-	del /Q /F *.pyc
-	del /Q /F */__pycache__/*
-
+#* Dev environment
+.PHONY: activate
 activate:
-	@echo "To enter poetry virtualenv, run:"
-	@echo "poetry shell"
+	poetry shell
+
+#* Linting & Testing
+.PHONY: test
+test:
+	PYTHONPATH=$(PYTHONPATH) poetry run pytest -c pyproject.toml --cov-report=html --cov=src tests/
+
+.PHONY: mypy
+mypy:
+	poetry run mypy --config-file pyproject.toml ./
+
+.PHONY: black_check
+black_check:
+	poetry run black --diff --check .
+
+.PHONY: pylint
+pylint:
+	poetry run pylint -j 4 src/
+
+.PHONY: check-all
+check-all: black_check pylint mypy test

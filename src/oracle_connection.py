@@ -1,6 +1,7 @@
 import oracledb
 import os
-from dotenv import load_dotenv 
+from dotenv import load_dotenv
+
 
 class OracleConnector:
     def __init__(self):
@@ -14,9 +15,7 @@ class OracleConnector:
     def __enter__(self):
         try:
             self.connection = oracledb.connect(
-                user = self.username,
-                password = self.password,
-                dsn = self.dsn
+                user=self.username, password=self.password, dsn=self.dsn
             )
             self.cursor = self.connection.cursor()
             return self
@@ -41,21 +40,21 @@ class OracleConnector:
         except oracledb.Error as e:
             print(f"[ORACLE ERROR] Execute failed: {e}")
             raise
-    
+
     def executemany(self, query: str, data: list[tuple]):
         try:
             self.cursor.executemany(query, data)
         except oracledb.Error as e:
             print(f"[ORACLE ERROR] Batch insert failed: {e}")
-            raise 
-    
+            raise
+
+
 def main():
     with OracleConnector() as db:
         db.execute("SELECT table_name FROM user_tables")
         for row in db.cursor:
             print(row)
 
+
 if __name__ == "__main__":
     main()
-
-    

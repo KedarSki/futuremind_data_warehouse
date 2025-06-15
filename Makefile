@@ -40,3 +40,19 @@ pylint:
 
 .PHONY: check-all
 check-all: black_check pylint mypy test
+
+.PHONY: run-distributors
+run-distributors:
+	poetry run python -m src.pipeline.distributor_loader
+
+.PHONY: run-oracle_connection
+run-oracle_connection:
+	poetry run python -m src.oracle_connection
+
+.PHONY: run-movies
+run-movies:
+	poetry run python -m src.pipeline.movie_loader
+
+.PHONY: run-facts
+run-facts:
+	poetry run python -m src.pipeline.fact_revenue_loader

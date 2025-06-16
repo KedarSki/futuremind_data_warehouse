@@ -1,156 +1,155 @@
-# Future Mind - Data Warehouse Project
 
-## 🎯 Project Goal
+# 🎬 Future Mind – Data Warehouse Project
 
-Build a data warehouse pipeline that:
+## 🎯 1. Project Goal
 
-* Ingests daily movie revenue data from a CSV file
-* Enriches the data with metadata from the OMDb API
-* Loads the data into a dimensional Oracle data model:
+Build a complete data warehouse pipeline that:
 
-  * 1 fact table: `FACT_REVENUE`
-  * 2 dimension tables: `DIM_MOVIES`, `DIM_DISTRIBUTORS`
-* \[WIP] Uploads the result to BigQuery with a dashboard in Looker Studio
+- 📥 Ingests daily movie revenue data from a CSV file
+- 🔎 Enriches movie metadata via the OMDb API
+- 🏗 Loads data into an Oracle-based dimensional model:
+  - `DIM_DISTRIBUTORS`, `DIM_MOVIES`, `FACT_REVENUE`
+- ☁️ Exports aggregated data to BigQuery
+- 📊 Visualizes insights in Looker Studio (GCP)
 
 ---
 
-## 📁 Project Structure
+## 📊 2. Final Dashboard
+
+[👉 View the Dashboard in Looker Studio](https://lookerstudio.google.com/s/qP_Y-6GnQX8)
+
+Contains:
+
+- 🏆 Top distributors by revenue
+- 🎬 Top movie titles by revenue
+- 📈 Revenue trend by year
+
+Styled in dark mode with pastel chart colors 🌙🎨
+
+---
+
+## 🧠 3. Technologies Used
+
+- Python 3.12+ 🐍
+- Oracle Database XE 21c (locally) 🧱
+- OMDb API 🎥
+- Google BigQuery & Looker Studio ☁️
+- Poetry & Makefile 🛠
+
+---
+
+## 📁 4. Project Structure
 
 ```
 futuremind_data_warehouse/
-├── data/                            # CSV files (original + processed)
+├── data/                         # CSV files
 ├── src/
-│   ├── pipeline/                    # Loaders for Oracle
+│   ├── pipeline/                 # Oracle Loaders
 │   │   ├── distributor_loader.py
 │   │   ├── movie_loader.py
 │   │   └── fact_revenue_loader.py
 │   ├── utils/
-│   │   └── omdb_client.py          # OMDb API handler
-│   └── oracle_connection.py        # Context-managed Oracle connector
-├── .env                            # Environment variables (excluded from Git)
-├── Makefile                        # Command shortcuts
-├── pyproject.toml                  # Poetry project config
-└── README.md                       # This file
+│   │   └── omdb_client.py
+│   └── oracle_connection.py
+├── tests/
+├── .env                          # Env credentials (not in Git)
+├── Makefile                      # Shortcut commands
+├── pyproject.toml                # Poetry config
+└── README.md                     # This file
 ```
 
 ---
 
-## ⚙️ Requirements
+## ⚙️ 5. Setup Instructions
 
-* Python 3.12+
-* [Oracle Database XE](https://www.oracle.com/database/technologies/xe-downloads.html)
-* [Poetry](https://python-poetry.org/)
-
----
-
-## ▶️ Setup Instructions
-
-### 1. Clone the repo
+### 5.1 Clone the repo
 
 ```bash
-git clone https://github.com/yourname/futuremind_data_warehouse.git
+git clone https://github.com/KedarSki/futuremind_data_warehouse.git
 cd futuremind_data_warehouse
 ```
 
-### 2. Install dependencies
+### 5.2 Install dependencies
 
 ```bash
 poetry install
 ```
 
-### 3. Activate environment
+### 5.3 Activate virtual environment
 
 ```bash
 poetry shell
 ```
 
-### 4. Prepare `.env` file
+### 5.4 Create a `.env` file
 
-Create `.env` in the root folder:
-
-```
-OMDB_API_KEY=your_omdb_key
+```ini
+OMDB_API_KEY=your_api_key
 ORACLE_USERNAME=future_mind_user
 ORACLE_PASSWORD=your_password
 ORACLE_DSN=localhost/XEPDB1
+CSV_PATH=C:/Git/futuremind_data_warehouse/data/revenues_per_day.csv
 ```
 
 ---
 
-## 🛠️ Makefile commands
+## 🛠️ 6. Running the Pipeline
 
-```bash
-make distributors     # Load unique distributors into Oracle
-make movies           # Load movie data from OMDb into Oracle
-make revenue          # Load fact table with revenue per day
-```
-
-You can chain them via:
-
-```bash
-make all              # Full pipeline
-```
-
----
-
-## 🗄️ Oracle Setup (local)
-
-### 1. Create user & schema
-
-Run in SQL\*Plus or DBeaver:
+### 6.1 Create schema and tables in Oracle
 
 ```sql
 CREATE USER future_mind_user IDENTIFIED BY your_password;
 GRANT CONNECT, RESOURCE TO future_mind_user;
-ALTER USER future_mind_user DEFAULT TABLESPACE users;
+
+-- Dimension Tables
+CREATE TABLE DIM_DISTRIBUTORS (...);
+CREATE TABLE DIM_MOVIES (...);
+
+-- Fact Table
+CREATE TABLE FACT_REVENUE (...);
 ```
 
-### 2. Create tables (if needed)
+### 6.2 Run loaders
 
-```sql
--- Dimension: distributors
-CREATE TABLE DIM_DISTRIBUTORS (
-  DISTRIBUTOR_ID VARCHAR2(36) PRIMARY KEY,
-  NAME VARCHAR2(255)
-);
+```bash
+make run-distributors     # Step 1
+make run-movies           # Step 2
+make run-facts            # Step 3
+```
 
--- Dimension: movies
-CREATE TABLE DIM_MOVIES (
-  MOVIE_ID VARCHAR2(36) PRIMARY KEY,
-  TITLE VARCHAR2(255),
-  YEAR NUMBER,
-  GENRE VARCHAR2(255),
-  DIRECTOR VARCHAR2(255)
-);
+or:
 
--- Fact: revenue
-CREATE TABLE FACT_REVENUE (
-  ID VARCHAR2(36) PRIMARY KEY,
-  MOVIE_ID VARCHAR2(36),
-  DISTRIBUTOR_ID VARCHAR2(36),
-  REVENUE_DATE DATE,
-  REVENUE NUMBER,
-  THEATERS VARCHAR2(255),
-  FOREIGN KEY (MOVIE_ID) REFERENCES DIM_MOVIES(MOVIE_ID),
-  FOREIGN KEY (DISTRIBUTOR_ID) REFERENCES DIM_DISTRIBUTORS(DISTRIBUTOR_ID)
-);
+```bash
+python main.py            # Full pipeline
 ```
 
 ---
 
-## ☁️ GCP Integration \[coming soon]
+## ☁️ 7. GCP Dashboard
 
-A separate branch or update will include:
+Exported Oracle data to BigQuery → view `vw_revenue_report`
 
-* Export to BigQuery
-* Hosting in GCP with Looker Studio dashboard
+Connected to Looker Studio for visualization.
 
-ETA: 1 day after submission of this version.
+### View columns:
+
+- DISTRIBUTOR_NAME
+- TITLE, GENRE, DIRECTOR, YEAR
+- REVENUE, REVENUE_DATE, THEATERS
 
 ---
 
-## 📬 Contact
+## 🧪 8. Code Quality
 
-Radoslaw Zamojski
-[GitHub](https://github.com/KedarSki)
-[LinkedIn](https://www.linkedin.com/in/radoslaw-zamojski/)
+```bash
+make check-all   # Black + Pylint + Mypy + Tests
+```
+
+---
+
+## 👤 9. Author
+
+**Radosław Zamojski**  
+🇵🇱 Poland  
+🔗 [GitHub](https://github.com/KedarSki)  
+🔗 [LinkedIn](https://www.linkedin.com/in/radoslaw-zamojski/)
